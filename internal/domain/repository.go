@@ -5,4 +5,6 @@ import "go-gin-postgresql-water-monitoring-system-api/internal/domain/entities"
 
 type PgSQLRepository interface {
 	Save(*entities.Owner, *entities.Address) error
+	UpdateBolet(float64, int64) error
+	GetAllID() ([]int64, error)
 }

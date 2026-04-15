@@ -14,11 +14,11 @@ type Config struct {
 var Env Config
 
 func StartConfig() error {
-	if err := envconfig.Process("", &Env); err != nil {
+	if err := godotenv.Load(); err != nil {
 		return err
 	}
 
-	if err := godotenv.Load(); err != nil {
+	if err := envconfig.Process("", &Env); err != nil {
 		return err
 	}
 

@@ -4,7 +4,7 @@ type Address struct {
 	CEP          string
 	PublicPlace  string
 	Neighborhood string
-	State        string
+	Uf           string
 	City         string
 	Region       string
 }
@@ -14,7 +14,8 @@ func NewAddress(cep, publicPlace, neighborhood, state, city, region string) *Add
 		CEP:          cep,
 		PublicPlace:  publicPlace,
 		Neighborhood: neighborhood,
-		State:        state,
+		Uf:           state,
 		City:         city,
+		Region:       region,
 	}
 }

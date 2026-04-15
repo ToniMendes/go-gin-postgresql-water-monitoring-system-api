@@ -10,11 +10,11 @@ import (
 func Routers(endpoint *Handler) {
 	r := gin.Default()
 
-	r.POST("/api/water-monitoring/add-new-address", func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, gin.H{
-			"message": "Ok",
-		})
-	})
+	r.POST("/api/water-monitoring/add-new-address", endpoint.AddNewAddress)
+	
+	if err := http.ListenAndServe(":8080", r); err != nil {
+		panic(err)
+	}
 
 	r.Run()
 }

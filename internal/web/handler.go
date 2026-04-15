@@ -10,14 +10,14 @@ import (
 
 type WaterMonitoringInputDTO struct {
 	OwnerName string `json:"owner" binding:"required,min=3,max=100"`
-	Email string `json:"personalemail" binding:"required, email"`
-	Phone string    `json:"phone" binding:"required,min=11,max=11"`
-	CEP   string    `json:"cep" binding:"required,min=8,max=8"`
+	Email     string `json:"email" binding:"required,email"`
+	Phone     string `json:"phone" binding:"required,min=11,max=11"`
+	CEP       string `json:"cep" binding:"required,min=8,max=8"`
 }
 
 type WaterMonitoringOutputDTO struct {
 	ID           int
-	OwnerName        string
+	OwnerName    string
 	Email        string
 	Phone        string
 	CEP          string
@@ -53,9 +53,9 @@ func (r *Handler) AddNewAddress(ctx *gin.Context) {
 
 	ucDTO := dto.WaterMonitoringInput{
 		OwnerName: input.OwnerName,
-		Email: input.Email,
-		Phone: input.Phone,
-		CEP:   input.CEP,
+		Email:     input.Email,
+		Phone:     input.Phone,
+		CEP:       input.CEP,
 	}
 
 	response, err := r.usecase.Execute(ucDTO)
@@ -68,7 +68,7 @@ func (r *Handler) AddNewAddress(ctx *gin.Context) {
 
 	responseDTO := WaterMonitoringOutputDTO{
 		ID:           response.ID,
-		OwnerName:        response.OwnerName,
+		OwnerName:    response.OwnerName,
 		Email:        response.Email,
 		Phone:        response.Phone,
 		CEP:          response.CEP,
