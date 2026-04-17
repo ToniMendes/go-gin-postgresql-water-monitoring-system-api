@@ -10,7 +10,8 @@ import (
 func Routers(endpoint *Handler) {
 	r := gin.Default()
 
-	r.POST("/api/water-monitoring/add-new-address", endpoint.AddNewAddress)
+	r.POST("/api/water-monitoring/add-new-residence", endpoint.AddNewAddress)
+	r.PUT("/api/water-monitoring/update-residence/:id", endpoint.UpdateOwner)
 	
 	if err := http.ListenAndServe(":8080", r); err != nil {
 		panic(err)

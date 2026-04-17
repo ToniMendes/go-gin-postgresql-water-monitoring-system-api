@@ -4,6 +4,7 @@ import (
 	"go-gin-postgresql-water-monitoring-system-api/internal/usecase/dto"
 	"go-gin-postgresql-water-monitoring-system-api/internal/usecase/writeonlyrepository"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,7 +17,7 @@ type WaterMonitoringInputDTO struct {
 }
 
 type WaterMonitoringOutputDTO struct {
-	ID           int
+	ID           int64
 	OwnerName    string
 	Email        string
 	Phone        string
@@ -30,6 +31,7 @@ type WaterMonitoringOutputDTO struct {
 
 type UseCaseRepository interface {
 	writeonlyrepository.ICreateUseCase
+	writeonlyrepository.IUpdateOwnerUseCase
 }
 
 type Handler struct {
@@ -58,9 +60,56 @@ func (r *Handler) AddNewAddress(ctx *gin.Context) {
 		CEP:       input.CEP,
 	}
 
-	response, err := r.usecase.Execute(ucDTO)
+	response, err := r.usecase.ExecCreate(ucDTO)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	responseDTO := WaterMonitoringOutputDTO{
+		ID:           response.ID,
+		OwnerName:    response.OwnerName,
+		Email:        response.Email,
+		Phone:        response.Phone,
+		CEP:          response.CEP,
+		PublicPlace:  response.PublicPlace,
+		Neighborhood: response.Neighborhood,
+		State:        response.State,
+		City:         response.City,
+		Region:       response.Region,
+	}
+
+	ctx.JSON(http.StatusCreated, responseDTO)
+}
+
+func (r *Handler) UpdateOwner(ctx *gin.Context) {
+	var input WaterMonitoringInputDTO
+	if err := ctx.ShouldBindJSON(&input); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	idStr := ctx.Param("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		ctx.JSON(400, gin.H{"error": "ID inválido. Deve ser um número."})
+		return
+	}
+
+	ucDTO := dto.WaterMonitoringInput{
+		OwnerName: input.OwnerName,
+		Email:     input.Email,
+		Phone:     input.Phone,
+		CEP:       input.CEP,
+	}
+
+	response, err := r.usecase.ExecUpdateOwner(ucDTO, id)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
 		return

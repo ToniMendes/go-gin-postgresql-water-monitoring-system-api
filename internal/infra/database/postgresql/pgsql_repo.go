@@ -53,8 +53,26 @@ func (r *PgSQLRepo) UpadteWaterConsumption(value float64, id int64) error {
 	return nil
 }
 
-func (r *PgSQLRepo) GetAllID(ids chan<- int64) (error) {
+func (r *PgSQLRepo) UpdateOwner(owner *entities.Owner, address *entities.Address, id int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	query := `
+		UPDATE residences
+		SET Owners_name = $1, email = $2, phone = $3, cep = $4, publicplace = $5, neighborhood = $6, uf = $7, city = $8, region = $9
+		WHERE id = $10;
+	`
+
+	_, err := r.pool.Exec(ctx, query, owner.OwnerName, owner.Email, owner.Phone, address.CEP, address.City, address.Neighborhood, address.Uf, address.City, address.Region, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *PgSQLRepo) GetAllID(ids chan<- int64) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
 	rows, err := r.pool.Query(ctx, "SELECT id FROM residences")
@@ -68,11 +86,57 @@ func (r *PgSQLRepo) GetAllID(ids chan<- int64) (error) {
 		if err := rows.Scan(&id); err != nil {
 			return err
 		}
-		ids <- id
+
+		select {
+		case ids <- id:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
 	}
 	if rows.Err() != nil {
 		return rows.Err()
 	}
 
 	return nil
+}
+
+func (r *PgSQLRepo) GetByID(id int64) (entities.Residence, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	query := `
+		SELECT id, owners_name, email, phone, cep, publicplace, 
+               neighborhood, uf, city, region 
+        FROM residences 
+        WHERE id = $1;
+	`
+
+	var res entities.Residence
+
+	err := r.pool.QueryRow(ctx, query, id).Scan(&res.ID, &res.OwnerName, &res.Email, &res.Phone, &res.CEP, &res.PublicPlace, &res.Neighborhood, &res.Uf, &res.City, &res.Region)
+	if err != nil {
+		return entities.Residence{}, err
+	}
+
+	return res, nil
+}
+
+func (r *PgSQLRepo) GetByEmail(email string) (entities.Residence, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	query := `
+		SELECT id, owners_name, email, phone, cep, publicplace, 
+               neighborhood, uf, city, region 
+        FROM residences 
+        WHERE email = $1;`
+
+	var res entities.Residence
+
+	err := r.pool.QueryRow(ctx, query, email).Scan(&res.ID, &res.OwnerName, &res.Email, &res.Phone, &res.CEP, &res.PublicPlace, &res.Neighborhood, &res.Uf, &res.City, &res.Region)
+	if err != nil {
+		return entities.Residence{}, err
+	}
+
+	return res, nil
 }

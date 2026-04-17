@@ -22,25 +22,29 @@ func main() {
 	repo := postgresql.NewPgSQLRepo(db.ClientPgSQL)
 
 	usecaseCreate := writeonly.NewCreateUseCase(repo)
+	usecaseUpdate := writeonly.NewUpdateUseCase(repo)
+
+
 	wm := watermonitoring.NewWaterMonitoring(repo)
 
 	go func() {
-		for {
+		ticker := time.NewTicker(90 * time.Second)
+		for range ticker.C {
 			err := wm.RecordWaterConsumption()
 			if err != nil {
 				log.Printf("Error: %v", err)
 			}
-
-			time.Sleep(1 * time.Minute)
 		}
 	}()
 
 	type handler struct {
 		*writeonly.CreateUseCase
+		*writeonly.UpdateUseCase
 	}
 
 	hub := handler{
 		usecaseCreate,
+		usecaseUpdate,
 	}
 
 	endpoints := web.NewHandler(hub)

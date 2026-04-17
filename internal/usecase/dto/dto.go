@@ -9,7 +9,7 @@ type WaterMonitoringInput struct {
 }
 
 type WaterMonitoringOutput struct {
-	ID           int    `json:"id"`
+	ID           int64  `json:"id"`
 	OwnerName    string `json:"owner"`
 	Email        string `json:"email"`
 	Phone        string `json:"phone"`
@@ -19,4 +19,5 @@ type WaterMonitoringOutput struct {
 	State        string `json:"state"`
 	City         string `json:"city"`
 	Region       string `json:"region"`
+	
 }

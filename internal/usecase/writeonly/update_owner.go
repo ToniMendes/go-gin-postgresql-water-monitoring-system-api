@@ -1,4 +1,3 @@
-// Package writeonly provides repository interfaces for write-only operations.
 package writeonly
 
 import (
@@ -8,17 +7,17 @@ import (
 	"go-gin-postgresql-water-monitoring-system-api/internal/usecase/dto"
 )
 
-type CreateUseCase struct {
+type UpdateUseCase struct {
 	pool domain.PgSQLRepository
 }
 
-func NewCreateUseCase(p domain.PgSQLRepository) *CreateUseCase {
-	return &CreateUseCase{
+func NewUpdateUseCase(p domain.PgSQLRepository) *UpdateUseCase {
+	return &UpdateUseCase{
 		pool: p,
 	}
 }
 
-func (r *CreateUseCase) ExecCreate(input dto.WaterMonitoringInput) (dto.WaterMonitoringOutput, error) {
+func (r *UpdateUseCase) ExecUpdateOwner(input dto.WaterMonitoringInput, id int64) (dto.WaterMonitoringOutput, error) {
 	owner, err := entities.NewOwner(input.OwnerName, input.Email, input.Phone)
 	if err != nil {
 		return dto.WaterMonitoringOutput{}, err
@@ -34,12 +33,12 @@ func (r *CreateUseCase) ExecCreate(input dto.WaterMonitoringInput) (dto.WaterMon
 		return dto.WaterMonitoringOutput{}, err
 	}
 
-	err = r.pool.Save(owner, address)
+	err = r.pool.UpdateOwner(owner, address, id)
 	if err != nil {
 		return dto.WaterMonitoringOutput{}, err
 	}
 
-	result, err := r.pool.GetByEmail(input.Email)
+	result, err := r.pool.GetByID(id)
 	if err != nil {
 		return dto.WaterMonitoringOutput{}, err
 	}

@@ -22,15 +22,17 @@ func NewWaterMonitoring(repo domain.PgSQLRepository) *WaterMonitoring {
 func (r *WaterMonitoring) RecordWaterConsumption() error {
 	tasks := make(chan int64, 1000)
 
-	err := r.repo.GetAllID(tasks)
-	if err != nil {
-		return err
-	}
+	go func() {
+		if err := r.repo.GetAllID(tasks); err != nil {
+			log.Printf("Error: %v", err)
+		}
 
-	
+		close(tasks)
+	}()
+
 	var wg sync.WaitGroup
 
-	workes := 1000
+	workes := 100
 
 	for i := 0; i < workes; i++ {
 		wg.Add(1)
@@ -46,18 +48,16 @@ func (r *WaterMonitoring) RecordWaterConsumption() error {
 			}
 		}()
 	}
-	close(tasks)
 
 	wg.Wait()
 
-	log.Printf("Ciclo de monitoramento finalizado: %d residências processadas.", len(tasks))
+	log.Printf("Ciclo de monitoramento finalizado: residências processadas.")
 	return nil
 }
 
 func expenses() float64 {
-	min := 0.01
-	max := 0.05
-
+	min := 0.12
+	max := 0.37
 	return min + rand.Float64()*(max-min)
 }
 
