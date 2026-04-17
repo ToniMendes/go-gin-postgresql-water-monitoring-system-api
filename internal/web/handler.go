@@ -9,14 +9,22 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type WaterMonitoringInputDTO struct {
+type input struct {
 	OwnerName string `json:"owner" binding:"required,min=3,max=100"`
 	Email     string `json:"email" binding:"required,email"`
 	Phone     string `json:"phone" binding:"required,min=11,max=11"`
 	CEP       string `json:"cep" binding:"required,min=8,max=8"`
 }
 
-type WaterMonitoringOutputDTO struct {
+func (i *input) ToDTO() dto.WaterMonitoringInput {
+	return dto.WaterMonitoringInput{
+		OwnerName: i.OwnerName,
+		Email:     i.Email,
+		Phone:     i.Phone,
+		CEP:       i.CEP,
+	} 
+}
+type output struct {
 	ID           int64
 	OwnerName    string
 	Email        string
@@ -27,6 +35,21 @@ type WaterMonitoringOutputDTO struct {
 	State        string
 	City         string
 	Region       string
+}
+
+func ToResponse(dto dto.WaterMonitoringOutput) output {
+	return output{
+		ID:           dto.ID,
+		OwnerName:    dto.OwnerName,
+		Email:        dto.Email,
+		Phone:        dto.Phone,
+		CEP:          dto.CEP,
+		PublicPlace:  dto.PublicPlace,
+		Neighborhood: dto.Neighborhood,
+		State:        dto.State,
+		City:         dto.City,
+		Region:       dto.Region,
+	}
 }
 
 type UseCaseRepository interface {
@@ -44,23 +67,16 @@ func NewHandler(useCaseRepository UseCaseRepository) *Handler {
 	}
 }
 
-func (r *Handler) AddNewAddress(ctx *gin.Context) {
-	var input WaterMonitoringInputDTO
-	if err := ctx.ShouldBindJSON(&input); err != nil {
+func (r *Handler) AddNewResidence(ctx *gin.Context) {
+	var inp input
+	if err := ctx.ShouldBindJSON(&inp); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
 
-	ucDTO := dto.WaterMonitoringInput{
-		OwnerName: input.OwnerName,
-		Email:     input.Email,
-		Phone:     input.Phone,
-		CEP:       input.CEP,
-	}
-
-	response, err := r.usecase.ExecCreate(ucDTO)
+	response, err := r.usecase.ExecCreate(inp.ToDTO())
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -68,25 +84,12 @@ func (r *Handler) AddNewAddress(ctx *gin.Context) {
 		return
 	}
 
-	responseDTO := WaterMonitoringOutputDTO{
-		ID:           response.ID,
-		OwnerName:    response.OwnerName,
-		Email:        response.Email,
-		Phone:        response.Phone,
-		CEP:          response.CEP,
-		PublicPlace:  response.PublicPlace,
-		Neighborhood: response.Neighborhood,
-		State:        response.State,
-		City:         response.City,
-		Region:       response.Region,
-	}
-
-	ctx.JSON(http.StatusCreated, responseDTO)
+	ctx.JSON(http.StatusCreated, ToResponse(response))
 }
 
 func (r *Handler) UpdateOwner(ctx *gin.Context) {
-	var input WaterMonitoringInputDTO
-	if err := ctx.ShouldBindJSON(&input); err != nil {
+	var inp input
+	if err := ctx.ShouldBindJSON(&inp); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
@@ -94,39 +97,21 @@ func (r *Handler) UpdateOwner(ctx *gin.Context) {
 	}
 
 	idStr := ctx.Param("id")
-	id, err := strconv.ParseInt(idStr, 10, 64)
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		ctx.JSON(400, gin.H{"error": "ID inválido. Deve ser um número."})
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid ID",
+		})
 		return
 	}
 
-	ucDTO := dto.WaterMonitoringInput{
-		OwnerName: input.OwnerName,
-		Email:     input.Email,
-		Phone:     input.Phone,
-		CEP:       input.CEP,
-	}
-
-	response, err := r.usecase.ExecUpdateOwner(ucDTO, id)
+	response, err := r.usecase.ExecUpdateOwner(inp.ToDTO(), int64(id))
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
 
-	responseDTO := WaterMonitoringOutputDTO{
-		ID:           response.ID,
-		OwnerName:    response.OwnerName,
-		Email:        response.Email,
-		Phone:        response.Phone,
-		CEP:          response.CEP,
-		PublicPlace:  response.PublicPlace,
-		Neighborhood: response.Neighborhood,
-		State:        response.State,
-		City:         response.City,
-		Region:       response.Region,
-	}
-
-	ctx.JSON(http.StatusOK, responseDTO)
+	ctx.JSON(http.StatusOK, ToResponse(response))
 }
