@@ -1,22 +1,23 @@
-// Package postgresql provides PostgreSQL database connectivity and operations.
+// Package postgresql provides PostgreSQL database pool.
 package postgresql
 
 import (
 	"context"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func NewPgSQLPool(ctx context.Context, connectionString string) (*pgx.Conn, error) {
+func NewPgSQLPool(ctx context.Context, connectionString string) (*pgxpool.Pool, error) {
 
-	conn, err := pgx.Connect(ctx, connectionString)
+	config, err := pgxpool.ParseConfig(connectionString)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := conn.Ping(ctx); err != nil {
+	pool, err := pgxpool.NewWithConfig(ctx, config)
+	if err != nil {
 		return nil, err
 	}
 
-	return conn, nil
+	return pool, nil
 }

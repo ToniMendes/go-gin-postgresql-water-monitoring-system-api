@@ -5,16 +5,16 @@ import (
 	"go-gin-postgresql-water-monitoring-system-api/internal/domain/entities"
 	"time"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type PgSQLRepo struct {
-	conn *pgx.Conn
+	pool *pgxpool.Pool
 }
 
-func NewPgSQLRepo(conn *pgx.Conn) *PgSQLRepo {
+func NewPgSQLRepo(pool *pgxpool.Pool) *PgSQLRepo {
 	return &PgSQLRepo{
-		conn: conn,
+		pool: pool,
 	}
 }
 
@@ -27,31 +27,28 @@ func (r *PgSQLRepo) Save(owners *entities.Owner, address *entities.Address) erro
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);
 	`
 
-	_, err := r.conn.Exec(ctx, query, owners.OwnerName, owners.Email, owners.Phone, address.CEP, address.PublicPlace, address.Neighborhood, address.Uf, address.City, address.Region)
+	_, err := r.pool.Exec(ctx, query, owners.OwnerName, owners.Email, owners.Phone, address.CEP, address.PublicPlace, address.Neighborhood, address.Uf, address.City, address.Region)
 	if err != nil {
 		return err
 	}
 
-
 	return nil
-
 }
 
-func (r *PgSQLRepo) UpdateBolet(value float64, id int64) error {
+func (r *PgSQLRepo) UpadteWaterConsumption(value float64, id int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	query := `
 		UPDATE residences
-		SET bolet = $1
+		SET invoice = invoice + $1
 		WHERE id = $2;
 	`
 
-	result, err := r.conn.Query(ctx, query, value, id)
+	_, err := r.pool.Exec(ctx, query, value, id)
 	if err != nil {
 		return err
 	}
-	defer result.Close()
 
 	return nil
 }
@@ -60,7 +57,7 @@ func (r *PgSQLRepo) GetAllID() ([]int64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	result, err := r.conn.Query(ctx, "SELECT id FROM residences")
+	result, err := r.pool.Query(ctx, "SELECT id FROM residences")
 	if err != nil {
 		return []int64{}, err
 	}

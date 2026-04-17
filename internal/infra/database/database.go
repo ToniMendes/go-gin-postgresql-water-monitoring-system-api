@@ -1,14 +1,16 @@
 // Package database provides database connection and configuration management.
 package database
 
-import "github.com/jackc/pgx/v5"
+import (
+	"github.com/jackc/pgx/v5/pgxpool"
+)
 
 type Database struct {
-	ClientPgSQL *pgx.Conn
+	ClientPgSQL *pgxpool.Pool
 }
 
-func NewDatabase(pgSQLConn *pgx.Conn) *Database {
+func NewDatabase(pgSQLPool *pgxpool.Pool) *Database {
 	return &Database{
-		ClientPgSQL: pgSQLConn,
+		ClientPgSQL: pgSQLPool,
 	}
 }

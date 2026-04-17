@@ -7,6 +7,7 @@ import (
 	"go-gin-postgresql-water-monitoring-system-api/internal/infra/database/postgresql"
 	"go-gin-postgresql-water-monitoring-system-api/internal/usecase/writeonly"
 	"go-gin-postgresql-water-monitoring-system-api/internal/web"
+	"go-gin-postgresql-water-monitoring-system-api/internal/worker/watermonitoring"
 	"log"
 	"time"
 )
@@ -18,15 +19,21 @@ func main() {
 	db, err := startDataBase()
 	returnFatalError(err)
 
-	defer func(){
-		if err := db.ClientPgSQL.Close(context.Background()); err != nil {
-			log.Fatal(err.Error())
-		}
-	}()
-
 	repo := postgresql.NewPgSQLRepo(db.ClientPgSQL)
 
 	usecaseCreate := writeonly.NewCreateUseCase(repo)
+	wm := watermonitoring.NewWaterMonitoring(repo)
+
+	go func(){
+		for {
+			err := wm.RecordWaterConsumption()
+			if err != nil {
+				log.Printf("Error: %v", err)
+			}
+			
+			time.Sleep(8 * time.Second)
+		}
+	}()
 
 	type handler struct {
 		*writeonly.CreateUseCase

@@ -3,6 +3,7 @@ package watermonitoring
 
 import (
 	"go-gin-postgresql-water-monitoring-system-api/internal/domain"
+	"log"
 	"math/rand"
 	"sync"
 	"time"
@@ -19,7 +20,7 @@ func NewWaterMonitoring(repo domain.PgSQLRepository) *WaterMonitoring {
 }
 
 func (r *WaterMonitoring) RecordWaterConsumption() error {
-	ids, err := r.repo.GetAllID() 
+	ids, err := r.repo.GetAllID()
 	if err != nil {
 		return err
 	}
@@ -31,28 +32,38 @@ func (r *WaterMonitoring) RecordWaterConsumption() error {
 
 	for i := 0; i < workes; i++ {
 		wg.Add(1)
-		go func(){
+		go func() {
 			defer wg.Done()
 			for id := range tasks {
 				totalExpense := expenses()
-				
-				// falta implementar o restante da logica 
-				_ = totalExpense
-				_ = id
 
-				
+				err := r.repo.UpadteWaterConsumption(totalExpense, int64(id))
+				if err != nil {
+					log.Printf("Error: %v", err)
+				}
 			}
 		}()
 	}
 
+	for _, id := range ids {
+		tasks <- int(id)
+	}
+
+	close(tasks)
+
+	wg.Wait()
+
+	log.Printf("Ciclo de monitoramento finalizado: %d residências processadas.", len(ids))
 	return nil
 }
 
 func expenses() float64 {
-	min := 0.43
-	max := 2.91
-	
-	random := min + rand.Float64() * (max - min)
+	min := 0.07
+	max := 0.32
 
-	return random
+	return min + rand.Float64()*(max-min)
+}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
 }
