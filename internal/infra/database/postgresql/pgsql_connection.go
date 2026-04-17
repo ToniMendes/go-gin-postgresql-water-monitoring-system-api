@@ -14,6 +14,8 @@ func NewPgSQLPool(ctx context.Context, connectionString string) (*pgxpool.Pool, 
 		return nil, err
 	}
 
+	config.MaxConns = 1000
+
 	pool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {
 		return nil, err

@@ -53,27 +53,26 @@ func (r *PgSQLRepo) UpadteWaterConsumption(value float64, id int64) error {
 	return nil
 }
 
-func (r *PgSQLRepo) GetAllID() ([]int64, error) {
+func (r *PgSQLRepo) GetAllID(ids chan<- int64) (error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	result, err := r.pool.Query(ctx, "SELECT id FROM residences")
+	rows, err := r.pool.Query(ctx, "SELECT id FROM residences")
 	if err != nil {
-		return []int64{}, err
+		return err
 	}
-	defer result.Close()
+	defer rows.Close()
 
-	var ids []int64
-	for result.Next() {
+	for rows.Next() {
 		var id int64
-		if err := result.Scan(&id); err != nil {
-			return []int64{}, err
+		if err := rows.Scan(&id); err != nil {
+			return err
 		}
-		ids = append(ids, id)
+		ids <- id
 	}
-	if result.Err() != nil {
-		return []int64{}, result.Err()
+	if rows.Err() != nil {
+		return rows.Err()
 	}
 
-	return ids, nil
+	return nil
 }

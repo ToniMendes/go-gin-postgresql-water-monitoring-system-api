@@ -24,14 +24,14 @@ func main() {
 	usecaseCreate := writeonly.NewCreateUseCase(repo)
 	wm := watermonitoring.NewWaterMonitoring(repo)
 
-	go func(){
+	go func() {
 		for {
 			err := wm.RecordWaterConsumption()
 			if err != nil {
 				log.Printf("Error: %v", err)
 			}
-			
-			time.Sleep(8 * time.Second)
+
+			time.Sleep(1 * time.Minute)
 		}
 	}()
 
