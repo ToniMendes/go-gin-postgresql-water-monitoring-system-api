@@ -38,7 +38,7 @@ func startDataBase() (*database.Database, error) {
 func NewApp() *App {
 	db, err := startDataBase()
 	if err != nil {
-		log.Printf("Error: %v", err)
+		log.Fatal(err.Error())
 	}
 
 	repo := postgresql.NewPgSQLRepo(db.ClientPgSQL)
