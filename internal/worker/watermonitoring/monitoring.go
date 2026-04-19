@@ -33,17 +33,17 @@ func (r *WaterMonitoring) RecordWaterConsumption(ctx context.Context) error {
 
 	var wg sync.WaitGroup
 
-	workes := 100
+	workers := 100
 
-	for i := 0; i < workes; i++ {
+	for i := 0; i < workers; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			for {
 				select {
-				case <- ctx.Done():
+				case <-ctx.Done():
 					return
-				case id, ok := <- id:
+				case id, ok := <-id:
 					if !ok {
 						return
 					}
@@ -79,8 +79,4 @@ func invoice() float64 {
 	min := 0.12
 	max := 0.37
 	return min + rand.Float64()*(max-min)
-}
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
 }
