@@ -15,6 +15,7 @@ Uma API robusta e escalável desenvolvida em **Go** para o monitoramento intelig
 - [Arquitetura](#-arquitetura)
 - [Configuração e Execução](#-configuração-e-execução)
 - [Endpoints da API](#-endpoints-da-api)
+- [Testes](#-testes)
 - [Worker de Monitoramento](#-worker-de-monitoramento)
 
 ---
@@ -82,6 +83,18 @@ internal/
 
 ---
 
+## 🧪 Testes
+
+O projeto conta com testes de unidade para garantir a integridade das regras de negócio e dos contratos da API.
+
+Para executar todos os testes, utilize o comando:
+
+```bash
+go test ./... -v
+```
+
+---
+
 ## 🤖 Worker de Monitoramento
 
 O sistema possui um worker interno (`WaterMonitoring`) que executa ciclos de medição a cada **90 segundos**. 
@@ -93,5 +106,5 @@ O sistema possui um worker interno (`WaterMonitoring`) que executa ciclos de med
 
 ## 🛠️ Próximos Passos (WIP)
 - [ ] Implementação de Logs estruturados.
-- [ ] Adição de testes unitários para os Usecases.
+- [x] Adição de testes unitários para Entidades e Handlers.
 - [ ] Dockerização completa da aplicação.
